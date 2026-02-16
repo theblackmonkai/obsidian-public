@@ -1,0 +1,32 @@
+#!/bin/bash
+# Pre-push security scan for personal info
+
+echo "🔍 Scanning for personal info..."
+
+# Patterns to check
+patterns=(
+  "api[_-]?key"
+  "token"
+  "password"
+  "secret"
+  "sk-"
+  "ghp_"
+  "patr"
+)
+
+found=0
+for pattern in "${patterns[@]}"; do
+  if grep -riE "$pattern" --include="*.md" . 2>/dev/null | grep -v ".git" > /dev/null; then
+    echo "⚠️ Found potential personal info: $pattern"
+    found=1
+  fi
+done
+
+if [ $found -eq 1 ]; then
+  echo "❌ Personal info detected! Aborting push."
+  echo "Run 'grep -riE \"(api_key|token|password|secret|sk-|ghp_|patr)\" .' to find issues"
+  exit 1
+fi
+
+echo "✅ No personal info detected"
+exit 0
